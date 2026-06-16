@@ -1,0 +1,8 @@
+TargetLabel,count
+BENIGN,2273097
+DoS,246865
+PortScan,158930
+DDoS,128027
+BruteForce,13835
+Bot,1966
+Infiltration,36
