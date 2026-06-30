@@ -11,7 +11,7 @@ def main():
     os.makedirs("models/xgboost", exist_ok=True)
     
     # Load data
-    df_train = pd.read_parquet("processed/train_lower_stress.parquet")
+    df_train = pd.read_parquet("processed/train_upper_stress.parquet")
     df_val = pd.read_parquet("processed/val.parquet")
     df_test = pd.read_parquet("processed/test.parquet")
     
