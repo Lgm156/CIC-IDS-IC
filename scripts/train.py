@@ -14,7 +14,7 @@ def train():
     print(f"Using device: {device}")
     
     # Load data
-    df_train = pd.read_parquet("processed/train.parquet")
+    df_train = pd.read_parquet("processed/train_lower_stress.parquet")
     df_val = pd.read_parquet("processed/val.parquet")
     
     scaler = joblib.load("models/scaler.joblib")
