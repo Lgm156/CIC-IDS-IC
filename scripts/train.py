@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import os
 import joblib
+import argparse
 from models.mlp import MLP
 from tqdm import tqdm
 
@@ -13,8 +14,13 @@ def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     
+    parser = argparse.ArgumentParser(description="Train MLP on a specified split")
+    parser.add_argument("--split", type=str, default="train_extreme_stress", choices=["train", "train_upper_stress", "train_lower_stress", "train_extreme_stress"], help="Which training split to use")
+    args = parser.parse_args()
+
     # Load data
-    df_train = pd.read_parquet("processed/train_upper_stress.parquet")
+    split_file = f"processed/{args.split}.parquet"
+    df_train = pd.read_parquet(split_file)
     df_val = pd.read_parquet("processed/val.parquet")
     
     scaler = joblib.load("models/scaler.joblib")
