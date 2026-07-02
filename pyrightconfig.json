@@ -1,0 +1,33 @@
+{
+    "$schema": "https://raw.githubusercontent.com/DetachHead/basedpyright/main/packages/vscode-pyright/schemas/basedpyrightconfig.schema.json",
+
+    "typeCheckingMode": "standard",
+
+    "reportMissingTypeStubs": "none",
+    "reportUnknownParameterType": "none",
+    "reportUnknownArgumentType": "none",
+    "reportUnknownVariableType": "none",
+    "reportUnknownMemberType": "none",
+    "reportUnknownLambdaType": "none",
+
+    "reportMissingParameterType": "none",
+    "reportMissingTypeArgument": "none",
+
+    "reportUnusedCallResult": "none",
+    "reportUnusedCoroutine": "warning",
+    "reportUnusedExpression": "none",
+
+    "reportAny": "none",
+    "reportExplicitAny": "none",
+    "reportImplicitOverride": "none",
+
+    "reportPrivateUsage": "none",
+    "reportUnnecessaryTypeIgnoreComment": "none",
+
+    "reportUntypedFunctionDecorator": "none",
+    "reportUntypedClassDecorator": "none",
+
+    "reportImportCycles": "none",
+
+    "pythonVersion": "3.12"
+}

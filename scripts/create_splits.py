@@ -62,53 +62,86 @@ def create_splits():
             dfs.append(df_sampled)
         return pd.concat(dfs).sample(frac=1.0, random_state=42).reset_index(drop=True)
 
-    # 1. Baseline Target Counts
-    target_train_counts_baseline = {
-        'BENIGN': 100000,
-        'DoS': 50000,
-        'PortScan': 25000,
-        'DDoS': 12000,
-        'BruteForce': 6000,
-        'WebAttack': 1000,
-        'Bot': 700
-    }
+    # ------------------------------------------------------------
+    # 1️⃣  Compute class frequencies *within the training pool*
+    # ------------------------------------------------------------
+    train_counts = df_train_full['TargetLabel'].value_counts()
+    max_count = train_counts.max()
+    min_count = train_counts.min()
+    ratio = max_count / min_count if min_count != 0 else 1
+    # 50 % of the *ratio* deviation from perfect balance (ratio = 1)
+    delta_factor = 0.5 * (ratio - 1.0)
 
-    # 2. Upper Stress Target Counts (+50% shift delta of absolute extremes)
-    target_train_counts_upper = {
-        'BENIGN': 49192,
-        'DoS': 32767,
-        'DDoS': 20294,
-        'BruteForce': 18317,
-        'WebAttack': 16681,
-        'PortScan': 16664,
-        'Bot': 16494
-    }
+    # ------------------------------------------------------------
+    # 2️⃣  Build the target‑count dictionaries using the ratio‑based factor
+    # ------------------------------------------------------------
+    # Baseline: keep the actual training‑pool distribution
+    target_train_counts_baseline = train_counts.to_dict()
 
-    # 3. Lower Stress Target Counts (-50% shift delta of absolute extremes)
-    target_train_counts_lower = {
-        'BENIGN': 166848,
-        'DoS': 716,
-        'DDoS': 562,
-        'BruteForce': 562,
-        'WebAttack': 562,
-        'PortScan': 562,
-        'Bot': 562
-    }
+    # Upper‑stress: increase each class by the delta factor, but cap to 2× baseline to avoid excessive oversampling
+    target_train_counts_upper = {}
+    for cls, count in train_counts.items():
+        target = int(count * (1.0 + delta_factor))
+        max_allowed = count * 2
+        if target > max_allowed:
+            target = max_allowed
+            print(f"[WARNING] Upper stress count for class {cls} capped to 2× baseline ({max_allowed})")
+        target_train_counts_upper[cls] = target
+
+    # Lower‑stress: decrease each class by the delta factor (clamped to at least 1)
+    target_train_counts_lower = {}
+    for cls, count in train_counts.items():
+        target = max(1, int(count * (1.0 - delta_factor)))
+        # Ensure we don't go below 1 (already clamped) and no need for further caps
+        target_train_counts_lower[cls] = target
+    
+    # Extreme‑stress: halve the minority‑to‑majority ratio
+    # Compute baseline class counts
+    N_max = train_counts.max()
+    N_min = train_counts.min()
+    # Compute baseline ratio and new target ratio
+    r = N_min / N_max if N_max != 0 else 0
+    delta = r / 2.0
+    r_extreme = r - delta  # equivalent to r / 2
+    N_min_new = int(round(r_extreme * N_max))
+    if N_min_new < 1:
+        print(f"[WARNING] Computed N_min_new={N_min_new} < 1; clipping to 1.")
+        N_min_new = 1
+    # Build target counts: keep original for all classes, adjust minority class(es)
+    target_train_counts_extreme = train_counts.to_dict()
+    minority_classes = train_counts[train_counts == N_min].index.tolist()
+    for cls in minority_classes:
+        target_train_counts_extreme[cls] = N_min_new
+    # Note: undersampling without replacement, no replication needed
 
     print("\nBuilding training splits...")
-    df_train = build_train_split(df_train_full, target_train_counts_baseline, use_replacement=False)
-    df_train_upper = build_train_split(df_train_full, target_train_counts_upper, use_replacement=False)
-    df_train_lower = build_train_split(df_train_full, target_train_counts_lower, use_replacement=False)
+    df_train = build_train_split(df_train_full, target_train_counts_baseline, use_replacement=True)
+    df_train_upper = build_train_split(df_train_full, target_train_counts_upper, use_replacement=True)
+    df_train_lower = build_train_split(df_train_full, target_train_counts_lower, use_replacement=True)
+    df_train_extreme = build_train_split(df_train_full, target_train_counts_extreme, use_replacement=False)
 
     print("\nFinal Split Distributions:")
     print("Train (Baseline):\n", df_train['TargetLabel'].value_counts())
     print("Train (Upper Stress):\n", df_train_upper['TargetLabel'].value_counts())
-    print("Train (Lower Stress):\n", df_train_lower['TargetLabel'].value_counts())
+    # Verification table: baseline vs extreme stress counts
+    print("\nVerification Table (Baseline vs Extreme Stress):")
+    verification_df = pd.DataFrame({
+        "Class": train_counts.index,
+        "Baseline": train_counts.values,
+        "Extreme_Stress": [target_train_counts_extreme[cls] for cls in train_counts.index]
+    })
+    print(verification_df.to_string(index=False))
+    # Ratios summary
+    achieved_ratio = min(verification_df["Extreme_Stress"]) / max(verification_df["Extreme_Stress"]) if max(verification_df["Extreme_Stress"]) > 0 else None
+    baseline_ratio = max_count / min_count if min_count != 0 else None
+    print(f"ratio_baseline (max/min): {baseline_ratio:.4f}" if baseline_ratio is not None else "ratio_baseline: undefined")
+    print(f"achieved_ratio (Extreme): {achieved_ratio:.4f}")
+    print(f"Total samples - Baseline: {train_counts.sum()}, Extreme: {verification_df['Extreme_Stress'].sum()}")
     print("Val:\n", df_val['TargetLabel'].value_counts())
     print("Test:\n", df_test['TargetLabel'].value_counts())
     
     # Imbalance Ratios
-    for name, df_t in [("Baseline", df_train), ("Upper Stress", df_train_upper), ("Lower Stress", df_train_lower)]:
+    for name, df_t in [("Baseline", df_train), ("Upper Stress", df_train_upper), ("Lower Stress", df_train_lower), ("Extreme Stress", df_train_extreme)]:
         counts_t = df_t['TargetLabel'].value_counts()
         ir = counts_t.max() / counts_t.min()
         print(f"{name} Training Imbalance Ratio: {ir:.2f}")
@@ -126,6 +159,7 @@ def create_splits():
     df_train.to_parquet("processed/train.parquet")
     df_train_upper.to_parquet("processed/train_upper_stress.parquet")
     df_train_lower.to_parquet("processed/train_lower_stress.parquet")
+    df_train_extreme.to_parquet("processed/train_extreme_stress.parquet")
     df_val.to_parquet("processed/val.parquet")
     df_test.to_parquet("processed/test.parquet")
     
@@ -134,6 +168,7 @@ def create_splits():
         'Train_Baseline': df_train['TargetLabel'].value_counts(),
         'Train_Upper_Stress': df_train_upper['TargetLabel'].value_counts(),
         'Train_Lower_Stress': df_train_lower['TargetLabel'].value_counts(),
+        'Train_Extreme_Stress': df_train_extreme['TargetLabel'].value_counts(),
         'Val': df_val['TargetLabel'].value_counts(),
         'Test': df_test['TargetLabel'].value_counts()
     })
