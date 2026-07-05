@@ -46,54 +46,34 @@ def create_splits():
     df_test = df.loc[test_indices]
     df_train_full = df.loc[train_indices]
     
-    # Helper to build train splits with oversampling support
-    def build_train_split(df_train_full, target_counts, use_replacement=False):
-        dfs = []
-        for label, target_count in target_counts.items():
-            df_label = df_train_full[df_train_full['TargetLabel'] == label]
-            available_count = len(df_label)
-            if target_count > available_count:
-                if use_replacement:
-                    df_sampled = df_label.sample(n=target_count, replace=True, random_state=42)
-                else:
-                    df_sampled = df_label
-            else:
-                df_sampled = df_label.sample(n=target_count, replace=False, random_state=42)
-            dfs.append(df_sampled)
-        return pd.concat(dfs).sample(frac=1.0, random_state=42).reset_index(drop=True)
-
-    # ------------------------------------------------------------
-    # 1️⃣  Compute class frequencies *within the training pool*
-    # ------------------------------------------------------------
-    train_counts = df_train_full['TargetLabel'].value_counts()
-    max_count = train_counts.max()
-    min_count = train_counts.min()
-    ratio = max_count / min_count if min_count != 0 else 1
-    # 50 % of the *ratio* deviation from perfect balance (ratio = 1)
-    delta_factor = 0.5 * (ratio - 1.0)
-
-    # ------------------------------------------------------------
-    # 2️⃣  Build the target‑count dictionaries using the ratio‑based factor
-    # ------------------------------------------------------------
-    # Baseline: keep the actual training‑pool distribution
-    target_train_counts_baseline = train_counts.to_dict()
-
-    # Upper‑stress: increase each class by the delta factor, but cap to 2× baseline to avoid excessive oversampling
-    target_train_counts_upper = {}
-    for cls, count in train_counts.items():
-        target = int(count * (1.0 + delta_factor))
-        max_allowed = count * 2
-        if target > max_allowed:
-            target = max_allowed
-            print(f"[WARNING] Upper stress count for class {cls} capped to 2× baseline ({max_allowed})")
-        target_train_counts_upper[cls] = target
-
-    # Lower‑stress: decrease each class by the delta factor (clamped to at least 1)
-    target_train_counts_lower = {}
-    for cls, count in train_counts.items():
-        target = max(1, int(count * (1.0 - delta_factor)))
-        # Ensure we don't go below 1 (already clamped) and no need for further caps
-        target_train_counts_lower[cls] = target
+    # Now create Long-Tailed Training Set
+    # Target distribution (approx 100-150 ratio):
+    # BENIGN: 100000
+    # DoS: 50000
+    # PortScan: 25000
+    # DDoS: 12000
+    # BruteForce: 6000
+    # WebAttack: 1000
+    # Bot: 700
+    
+    target_train_counts = {
+        'BENIGN': 150000,
+        'DoS': 50000,
+        'PortScan': 25000,
+        'DDoS': 12000,
+        'BruteForce': 6000,
+        'WebAttack': 1000,
+        'Bot': 700
+    }
+    
+    final_train_indices = []
+    for label, count in target_train_counts.items():
+        idx = df_train_full[df_train_full['TargetLabel'] == label].index.tolist()
+        np.random.seed(42)
+        np.random.shuffle(idx)
+        final_train_indices.extend(idx[:count])
+        
+    df_train = df.loc[final_train_indices]
     
     # Extreme‑stress: halve the minority‑to‑majority ratio
     # Compute baseline class counts
