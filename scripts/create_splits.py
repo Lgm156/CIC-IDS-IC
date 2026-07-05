@@ -57,7 +57,7 @@ def create_splits():
     # Bot: 700
     
     target_train_counts = {
-        'BENIGN': 100000,
+        'BENIGN': 150000,
         'DoS': 50000,
         'PortScan': 25000,
         'DDoS': 12000,

@@ -17,7 +17,8 @@ def main():
     df_train = pd.read_parquet("processed/train.parquet")
     df_val = pd.read_parquet("processed/val.parquet")
     df_test = pd.read_parquet("processed/test.parquet")
-    scaler = joblib.load("models/scaler.joblib") features = joblib.load("models/features.joblib")
+    scaler = joblib.load("models/scaler.joblib")
+    features = joblib.load("models/features.joblib")
     le = joblib.load("models/label_encoder.joblib")
     
     X_train = scaler.transform(df_train[features])
