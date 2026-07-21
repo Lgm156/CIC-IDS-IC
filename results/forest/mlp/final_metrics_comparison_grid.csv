@@ -1,0 +1,13 @@
+,Baseline,IC
+Accuracy,0.6971428571428572,0.852
+Balanced Accuracy,0.6971428571428572,0.8520000000000001
+Macro Precision,0.798099846592268,0.8534011087977807
+Macro Recall,0.6971428571428572,0.8520000000000001
+Macro F1,0.6915649100104468,0.852123871974393
+Recall_Aspen,0.31,0.868
+Recall_Cottonwood_Willow,0.554,0.92
+Recall_Douglas_fir,0.514,0.79
+Recall_Krummholz,0.856,0.96
+Recall_Lodgepole_Pine,0.908,0.838
+Recall_Ponderosa_Pine,0.902,0.744
+Recall_Spruce_Fir,0.836,0.844

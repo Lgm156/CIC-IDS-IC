@@ -1,0 +1,8 @@
+TargetLabel,Train_Baseline,Train_Upper_Stress,Train_Lower_Stress,Train_Extreme_Stress,Val,Test
+Aspen,4000,5000,3000,4000,500,500
+Cottonwood_Willow,1000,1200,800,200,500,500
+Douglas_fir,8000,10000,6000,8000,500,500
+Krummholz,10000,12000,8000,10000,500,500
+Lodgepole_Pine,150000,180000,120000,150000,500,500
+Ponderosa_Pine,20000,25000,15000,20000,500,500
+Spruce_Fir,100000,120000,80000,100000,500,500
