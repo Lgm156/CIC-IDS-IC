@@ -50,14 +50,24 @@ def search_lambda_binary(pd_val, y_val, ps):
             
             mid_steps = (low_steps + high_steps) // 2
             M = mid_steps * prec
-            
             m_val = evaluate_lam(M)
-            m_plus = evaluate_lam(M + prec)
-            m_minus = evaluate_lam(M - prec)
             
-            if m_val > m_plus and m_val > m_minus:
-                return M
-            elif m_val > m_plus and m_val < m_minus:
+            # Plateau Resolution (Look-Ahead Loop)
+            # If flat on the right, look further right
+            step_r = prec
+            while abs(evaluate_lam(M + step_r) - m_val) < 1e-9 and (M + step_r) <= high:
+                step_r += prec
+            m_plus_actual = evaluate_lam(M + step_r)
+            
+            # If flat on the left, look further left
+            step_l = prec
+            while abs(evaluate_lam(M - step_l) - m_val) < 1e-9 and (M - step_l) >= low:
+                step_l += prec
+            m_minus_actual = evaluate_lam(M - step_l)
+            
+            if m_val >= m_plus_actual and m_val >= m_minus_actual:
+                return M  # Peak plateau center found
+            elif m_minus_actual > m_val:
                 return find_max_lambda(low, M - prec)
             else:
                 return find_max_lambda(M + prec, high)

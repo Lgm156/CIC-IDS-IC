@@ -9,7 +9,7 @@ import joblib
 # =====================================================================
 
 # Number of samples per class for validation and test splits (must be balanced)
-VAL_TEST_SAMPLES_PER_CLASS = 500
+VAL_TEST_SAMPLES_PER_CLASS = 800
 
 # Target training counts per class for baseline split
 TARGET_TRAIN_COUNTS_BASELINE = {

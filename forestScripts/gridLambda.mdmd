@@ -1,0 +1,20 @@
+Evaluating mlp on Forest Cover Dataset using GRID SEARCH for Lambda...
+
+Best Lambda (Grid Search) for mlp: 0.9300 (Val Acc: 0.8431)
+
+Final Metrics Comparison (Grid Search):
+                          Baseline        IC
+Accuracy                  0.717143  0.855714
+Balanced Accuracy         0.717143  0.855714
+Macro Precision           0.804356  0.857558
+Macro Recall              0.717143  0.855714
+Macro F1                  0.712995  0.855263
+Recall_Aspen              0.332000  0.890000
+Recall_Cottonwood_Willow  0.618000  0.922000
+Recall_Douglas_fir        0.560000  0.866000
+Recall_Krummholz          0.864000  0.968000
+Recall_Lodgepole_Pine     0.920000  0.786000
+Recall_Ponderosa_Pine     0.896000  0.718000
+Recall_Spruce_Fir         0.830000  0.840000
+
+Evaluation complete (Grid Search). Outputs saved to results/forest/mlp/
