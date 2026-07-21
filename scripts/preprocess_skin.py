@@ -60,7 +60,7 @@ def preprocess_skin():
     print(lesion_df['dx'].value_counts())
     
     # Reserve validation and test lesion IDs
-    # Target 30 images per class for validation and 30 for test.
+    # Target 40 images per class for validation and 30 for test.
     np.random.seed(42)
     
     val_lesions = set()
@@ -73,7 +73,7 @@ def preprocess_skin():
         # Accumulate validation images
         val_img_count = 0
         val_idx = 0
-        while val_img_count < 30 and val_idx < len(cls_lesions):
+        while val_img_count < 40 and val_idx < len(cls_lesions):
             lid = cls_lesions[val_idx]
             val_lesions.add(lid)
             val_img_count += len(df[df['lesion_id'] == lid])
@@ -102,7 +102,7 @@ def preprocess_skin():
         df_cls_val = df_val_raw[df_val_raw['dx'] == cls]
         df_cls_test = df_test_raw[df_test_raw['dx'] == cls]
         
-        val_sampled.append(df_cls_val.sample(n=30, random_state=42))
+        val_sampled.append(df_cls_val.sample(n=40, random_state=42))
         test_sampled.append(df_cls_test.sample(n=30, random_state=42))
         
     df_val = pd.concat(val_sampled).reset_index(drop=True)
